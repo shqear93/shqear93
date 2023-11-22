@@ -48,7 +48,7 @@ I'm a passionate Software and DevOps Engineer with a knack for building robust w
 
 ### 🌍 Community Involvement
 
-I'm actively involved in the tech community, contributing to open-source projects and participating in discussions. Feel free to reach out if you're looking for collaboration or just a tech chat!
+I'am always excited to be involved in the tech community, and contribute to open-source projects and participating in discussions. Feel free to reach out if you're looking for collaboration or just a tech chat!
 
 ---
 
