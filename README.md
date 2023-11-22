@@ -8,3 +8,8 @@
 <br>
 <p align="center"> <img src="https://komarev.com/ghpvc/?username=shqear&label=Profile%20views&color=0e75b6&style=plastic" alt="shqear" /> </p>
 
+
+
+## 🔥 Streak Stats
+<p align="center" href="https://git.io/streak-stats"><img src="https://github-readme-streak-stats.herokuapp.com?user=shqear93&theme=vue-dark&fire=EB5454&ring=EB5454" alt="Khaled Streak" /></p>
+
