@@ -101,16 +101,22 @@ I'm a passionate Software and DevOps Engineer with a knack for building robust w
 
 ---
 
-### 📫 How to Reach Me
+### 🌍 Community Involvement
 
-- LinkedIn: [Khaled AbuShqear](https://www.linkedin.com/in/shqear/)
-- Email: [qmax93@gmail.com](mailto:qmax93@gmail.com)
+I'm always excited to be involved in the tech community, and contribute to open-source projects and participating in discussions. Feel free to reach out if you're looking for collaboration or just a tech chat!
 
 ---
 
-### 🌍 Community Involvement
+### 📫 Let's Connect
 
-I'am always excited to be involved in the tech community, and contribute to open-source projects and participating in discussions. Feel free to reach out if you're looking for collaboration or just a tech chat!
+<p align="left">
+  <a href="https://www.linkedin.com/in/shqear/">
+    <img alt="LinkedIn Badge" src="https://img.shields.io/badge/-Khaled_AbuShqear-blue?style=flat-square&logo=Linkedin&logoColor=white">
+  </a>&nbsp;
+  <a href="mailto:qmax93@gmail.com">
+    <img alt="Gmail Badge" src="https://img.shields.io/badge/-qmax93%40gmail.com-red?style=flat-square&logo=Gmail&logoColor=white">
+  </a>&nbsp;
+</p>
 
 ---
 
