@@ -13,14 +13,41 @@ const links = [
 <nav class="site-nav">
   <div class="wrap nav-inner">
     <a href="#" class="brand mono">khaled@portfolio<span class="cursor">_</span></a>
-    <div class="links mono">
+    <div class="links mono" id="nav-links">
       {links.map((l) => (
-        <a href={l.href}>{l.label}</a>
+        <a href={l.href} data-nav-link={l.href.slice(1)}>{l.label}</a>
       ))}
       <a href={profile.resumeMain} target="_blank" rel="noopener" class="btn resume-link">resume ↗</a>
     </div>
   </div>
 </nav>
+
+<script>
+  const navLinks = document.querySelectorAll('#nav-links a[data-nav-link]');
+  const sections = Array.from(navLinks)
+    .map((a) => document.getElementById(a.getAttribute('data-nav-link') || ''))
+    .filter((el) => el !== null);
+
+  const setActive = (id) => {
+    navLinks.forEach((a) => {
+      a.classList.toggle('active', a.getAttribute('data-nav-link') === id);
+    });
+  };
+
+  const spy = new IntersectionObserver(
+    (entries) => {
+      const visible = entries
+        .filter((e) => e.isIntersecting)
+        .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+      if (visible.length > 0) {
+        setActive(visible[0].target.id);
+      }
+    },
+    { rootMargin: '-56px 0px -70% 0px', threshold: 0 }
+  );
+
+  sections.forEach((section) => spy.observe(section));
+</script>
 
 <style>
   .site-nav {
@@ -67,6 +94,22 @@ const links = [
   .links a:hover {
     color: var(--green);
     text-decoration: none;
+  }
+
+  .links a.active {
+    color: var(--green);
+    position: relative;
+  }
+
+  .links a.active::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -8px;
+    height: 2px;
+    background: var(--green);
+    border-radius: 2px;
   }
 
   .resume-link {

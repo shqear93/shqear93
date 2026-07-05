@@ -25,6 +25,12 @@ html {
   background: var(--bg);
 }
 
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 body {
   margin: 0;
   background: var(--bg);
@@ -70,6 +76,7 @@ a:hover {
 section {
   padding: 96px 0;
   border-bottom: 1px solid var(--border);
+  scroll-margin-top: 56px;
 }
 
 section:last-of-type {
@@ -129,7 +136,8 @@ section:last-of-type {
 .js-reveal .reveal {
   opacity: 0;
   transform: translateY(24px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  transition-delay: calc(var(--i, 0) * 70ms);
 }
 
 .js-reveal .reveal.is-visible {
@@ -141,6 +149,24 @@ section:last-of-type {
   .js-reveal .reveal {
     opacity: 1;
     transform: none;
+    transition: none;
+  }
+}
+
+/* Scroll progress bar */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  width: 0%;
+  background: linear-gradient(90deg, var(--green-dim), var(--green));
+  z-index: 100;
+  transition: width 0.1s linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-progress {
     transition: none;
   }
 }

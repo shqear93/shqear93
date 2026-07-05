@@ -6,8 +6,8 @@ import { experience } from '../data/content';
   <div class="wrap">
     <div class="section-label reveal">cat experience.log</div>
     <div class="timeline">
-      {experience.map((role) => (
-        <div class="entry reveal">
+      {experience.map((role, i) => (
+        <div class="entry reveal" style={`--i: ${Math.min(i, 3)}`}>
           <div class="entry-head">
             <div>
               <h3>{role.role}</h3>

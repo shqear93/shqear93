@@ -10,8 +10,8 @@ function formatCategory(cat: string) {
   <div class="wrap">
     <div class="section-label reveal">tree skills/</div>
     <div class="skills-grid">
-      {skills.map((group) => (
-        <div class="skill-group reveal">
+      {skills.map((group, i) => (
+        <div class="skill-group reveal" style={`--i: ${i}`}>
           <div class="mono group-name">{formatCategory(group.category)}/</div>
           <div class="chips">
             {group.items.map((item) => (

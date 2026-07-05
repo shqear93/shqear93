@@ -28,7 +28,7 @@ import { profile, heroStats } from '../data/content';
         <div class="stats" hidden>
           {heroStats.map((s) => (
             <div class="stat">
-              <span class="stat-value">{s.value}</span>
+              <span class="stat-value" data-target={s.value}>0</span>
               <span class="stat-label">{s.label}</span>
             </div>
           ))}
@@ -40,6 +40,7 @@ import { profile, heroStats } from '../data/content';
         </div>
       </div>
     </div>
+    <a href="#about" class="scroll-cue mono" aria-label="Scroll to About section">scroll <span class="chevron">↓</span></a>
   </div>
 </section>
 
@@ -75,6 +76,31 @@ import { profile, heroStats } from '../data/content';
     });
   }
 
+  function countUp(el, duration) {
+    const target = el.dataset.target || '';
+    const match = target.match(/^([\d.]+)(.*)$/);
+    if (reduceMotion || !match) {
+      el.textContent = target;
+      return;
+    }
+    const [, numStr, suffix] = match;
+    const end = parseFloat(numStr);
+    const decimals = (numStr.split('.')[1] || '').length;
+    const start = performance.now();
+    function tick(now) {
+      const elapsed = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - elapsed, 3);
+      const value = end * eased;
+      el.textContent = `${value.toFixed(decimals)}${suffix}`;
+      if (elapsed < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        el.textContent = target;
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+
   async function boot() {
     await typeInto(firstLine, 'whoami', 70);
     await new Promise((r) => setTimeout(r, 200));
@@ -89,6 +115,9 @@ import { profile, heroStats } from '../data/content';
     await typeInto(secondLine, 'cat impact.log', 70);
     await new Promise((r) => setTimeout(r, 200));
     statsEl.hidden = false;
+    statsEl.querySelectorAll('.stat-value').forEach((el, i) => {
+      setTimeout(() => countUp(el, 900), i * 80);
+    });
     await new Promise((r) => setTimeout(r, 250));
     ctaRow.hidden = false;
   }
@@ -106,6 +135,39 @@ import { profile, heroStats } from '../data/content';
   .term-window {
     overflow: hidden;
     box-shadow: 0 40px 100px -30px rgba(61, 220, 132, 0.12);
+  }
+
+  .scroll-cue {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: center;
+    margin-top: 36px;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+
+  .scroll-cue:hover {
+    color: var(--green);
+    text-decoration: none;
+  }
+
+  .scroll-cue .chevron {
+    display: inline-block;
+    animation: bob 1.6s ease-in-out infinite;
+  }
+
+  @keyframes bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(4px); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scroll-cue .chevron {
+      animation: none;
+    }
   }
 
   .term-title {
@@ -170,6 +232,18 @@ import { profile, heroStats } from '../data/content';
     border: 1px solid var(--border);
     border-radius: 6px;
     padding: 12px 14px;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+  }
+
+  .stat:hover {
+    border-color: var(--green-dim);
+    transform: translateY(-2px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .stat:hover {
+      transform: none;
+    }
   }
 
   .stat-value {

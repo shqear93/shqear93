@@ -6,8 +6,8 @@ import { projects } from '../data/content';
   <div class="wrap">
     <div class="section-label reveal">ls -la projects/</div>
     <div class="project-grid">
-      {projects.map((p) => (
-        <article class="panel project-card reveal">
+      {projects.map((p, i) => (
+        <article class="panel project-card reveal" style={`--i: ${i}`}>
           <div class="term-chrome">
             <span class="term-dot red"></span>
             <span class="term-dot amber"></span>
@@ -55,6 +55,19 @@ import { projects } from '../data/content';
 
   .project-card {
     overflow: hidden;
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .project-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--border-bright);
+    box-shadow: 0 20px 45px -20px rgba(61, 220, 132, 0.25);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .project-card:hover {
+      transform: none;
+    }
   }
 
   .project-body {
