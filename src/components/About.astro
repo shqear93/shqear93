@@ -1,0 +1,56 @@
+---
+import { bio } from '../data/content';
+const paragraphs = bio.trim().split('\n\n');
+---
+
+<section id="about">
+  <div class="wrap reveal">
+    <div class="section-label">cat about.md</div>
+    <div class="about-grid">
+      <img src="/images/me.jpg" alt="Portrait of Khaled AbuShqear" class="avatar" loading="lazy" />
+      <div class="about-copy">
+        {paragraphs.map((p) => (
+          <p>{p}</p>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .about-grid {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 32px;
+    align-items: start;
+  }
+
+  .avatar {
+    width: 140px;
+    height: 140px;
+    border-radius: 12px;
+    object-fit: cover;
+    border: 1px solid var(--border-bright);
+    filter: grayscale(35%);
+  }
+
+  .about-copy p {
+    margin: 0 0 16px;
+    color: var(--text-muted);
+    font-size: 15.5px;
+  }
+
+  .about-copy p:last-child {
+    margin-bottom: 0;
+  }
+
+  @media (max-width: 640px) {
+    .about-grid {
+      grid-template-columns: 1fr;
+    }
+    .avatar {
+      width: 96px;
+      height: 96px;
+    }
+  }
+</style>

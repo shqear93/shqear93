@@ -1,0 +1,45 @@
+---
+import { skills } from '../data/content';
+
+function formatCategory(cat: string) {
+  return cat.replace(/_/g, ' & ');
+}
+---
+
+<section id="skills">
+  <div class="wrap">
+    <div class="section-label reveal">tree skills/</div>
+    <div class="skills-grid">
+      {skills.map((group) => (
+        <div class="skill-group reveal">
+          <div class="mono group-name">{formatCategory(group.category)}/</div>
+          <div class="chips">
+            {group.items.map((item) => (
+              <span class="tag">{item}</span>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 28px;
+  }
+
+  .group-name {
+    color: var(--green);
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+</style>

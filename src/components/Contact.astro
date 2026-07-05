@@ -1,0 +1,105 @@
+---
+import { profile } from '../data/content';
+
+const socials = [
+  { label: 'GitHub', href: profile.github },
+  { label: 'LinkedIn', href: profile.linkedin },
+  { label: 'Stack Overflow', href: profile.stackoverflow },
+];
+
+const resumes = [
+  { label: 'Resume (platform focus)', href: profile.resumeMain },
+  { label: 'Resume (SRE focus)', href: profile.resumeSre },
+];
+---
+
+<section id="contact">
+  <div class="wrap reveal">
+    <div class="section-label">cat contact.md</div>
+    <h2 class="section-title">Let's build something that survives production.</h2>
+    <p class="lead">
+      Open to senior/staff platform, SRE, and AI-infrastructure roles. The fastest way to
+      reach me is email.
+    </p>
+    <div class="cta-row">
+      <a href={`mailto:${profile.email}`} class="btn primary">{profile.email}</a>
+    </div>
+
+    <div class="link-cols">
+      <div>
+        <div class="mini-label mono">elsewhere</div>
+        <ul>
+          {socials.map((s) => (
+            <li><a href={s.href} target="_blank" rel="noopener">{s.label} ↗</a></li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <div class="mini-label mono">resumes</div>
+        <ul>
+          {resumes.map((r) => (
+            <li><a href={r.href} target="_blank" rel="noopener">{r.label} ↗</a></li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="wrap">
+  <p class="mono footer-text">© {new Date().getFullYear()} Khaled AbuShqear. Built with Astro.</p>
+</footer>
+
+<style>
+  .lead {
+    max-width: 52ch;
+    font-size: 15.5px;
+    margin: 4px 0 28px;
+  }
+
+  .cta-row {
+    margin-bottom: 44px;
+  }
+
+  .link-cols {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 28px;
+  }
+
+  .mini-label {
+    font-size: 11px;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+  }
+
+  .link-cols ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .link-cols a {
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  .link-cols a:hover {
+    color: var(--green);
+  }
+
+  footer {
+    padding: 28px 24px 40px;
+  }
+
+  .footer-text {
+    font-size: 12px;
+    color: var(--text-faint);
+    margin: 0;
+  }
+</style>

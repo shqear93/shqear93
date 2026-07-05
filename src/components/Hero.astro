@@ -1,0 +1,201 @@
+---
+import { profile, heroStats } from '../data/content';
+---
+
+<section class="hero" id="hero">
+  <div class="wrap">
+    <div class="panel term-window">
+      <div class="term-chrome">
+        <span class="term-dot red"></span>
+        <span class="term-dot amber"></span>
+        <span class="term-dot green"></span>
+        <span class="term-title mono">khaled — zsh</span>
+      </div>
+      <div class="term-body mono" id="term-body">
+        <div class="line" data-cmd="whoami">
+          <span class="prompt">$</span> <span class="cmd"></span><span class="type-cursor">▌</span>
+        </div>
+        <div class="line output name-line" hidden>
+          <span class="name"></span>
+        </div>
+        <div class="line output title-line" hidden>
+          <span class="title-text"></span>
+        </div>
+        <div class="line blank" hidden></div>
+        <div class="line" data-cmd="cat impact.log" hidden>
+          <span class="prompt">$</span> <span class="cmd"></span><span class="type-cursor">▌</span>
+        </div>
+        <div class="stats" hidden>
+          {heroStats.map((s) => (
+            <div class="stat">
+              <span class="stat-value">{s.value}</span>
+              <span class="stat-label">{s.label}</span>
+            </div>
+          ))}
+        </div>
+        <div class="cta-row" hidden>
+          <a href={`mailto:${profile.email}`} class="btn primary">Email me</a>
+          <a href={profile.resumeMain} target="_blank" rel="noopener" class="btn">View resume ↗</a>
+          <a href="#projects" class="btn">See projects</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script define:vars={{ name: profile.name, title: profile.title }}>
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const lines = document.querySelectorAll('#term-body .line[data-cmd]');
+  const [firstLine, secondLine] = lines;
+  const nameLine = document.querySelector('.name-line');
+  const titleLine = document.querySelector('.title-line');
+  const blankLine = document.querySelector('.line.blank');
+  const statsEl = document.querySelector('.stats');
+  const ctaRow = document.querySelector('.cta-row');
+
+  function typeInto(el, text, speed) {
+    return new Promise((resolve) => {
+      const cmdSpan = el.querySelector('.cmd');
+      if (reduceMotion) {
+        cmdSpan.textContent = text;
+        resolve();
+        return;
+      }
+      let i = 0;
+      const tick = () => {
+        cmdSpan.textContent = text.slice(0, i);
+        i++;
+        if (i <= text.length) {
+          setTimeout(tick, speed);
+        } else {
+          resolve();
+        }
+      };
+      tick();
+    });
+  }
+
+  async function boot() {
+    await typeInto(firstLine, 'whoami', 70);
+    await new Promise((r) => setTimeout(r, 200));
+    nameLine.hidden = false;
+    nameLine.querySelector('.name').textContent = name;
+    await new Promise((r) => setTimeout(r, 150));
+    titleLine.hidden = false;
+    titleLine.querySelector('.title-text').textContent = title;
+    blankLine.hidden = false;
+
+    secondLine.hidden = false;
+    await typeInto(secondLine, 'cat impact.log', 70);
+    await new Promise((r) => setTimeout(r, 200));
+    statsEl.hidden = false;
+    await new Promise((r) => setTimeout(r, 250));
+    ctaRow.hidden = false;
+  }
+
+  boot();
+</script>
+
+<style>
+  .hero {
+    padding-top: 64px;
+    padding-bottom: 64px;
+    border-bottom: none;
+  }
+
+  .term-window {
+    overflow: hidden;
+    box-shadow: 0 40px 100px -30px rgba(61, 220, 132, 0.12);
+  }
+
+  .term-title {
+    margin-left: 8px;
+    font-size: 12px;
+    color: var(--text-faint);
+  }
+
+  .term-body {
+    padding: 28px 24px 32px;
+    font-size: 15px;
+    min-height: 260px;
+  }
+
+  .line {
+    margin-bottom: 6px;
+  }
+
+  .prompt {
+    color: var(--text-faint);
+  }
+
+  .cmd,
+  .output {
+    color: var(--text);
+  }
+
+  .type-cursor {
+    color: var(--green);
+    animation: blink 1s steps(1) infinite;
+  }
+
+  .name-line .name {
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    font-weight: 800;
+    font-family: var(--sans);
+    color: var(--text);
+    display: inline-block;
+  }
+
+  .title-line .title-text {
+    color: var(--green);
+  }
+
+  .blank {
+    height: 12px;
+  }
+
+  @keyframes blink {
+    50% { opacity: 0; }
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin: 20px 0 28px;
+  }
+
+  .stat {
+    background: var(--bg-panel-raised);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 14px;
+  }
+
+  .stat-value {
+    display: block;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--green);
+  }
+
+  .stat-label {
+    display: block;
+    font-size: 11.5px;
+    color: var(--text-faint);
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+
+  .cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  @media (max-width: 560px) {
+    .stats {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
