@@ -1,0 +1,76 @@
+---
+---
+
+<canvas id="matrix-bg" aria-hidden="true"></canvas>
+
+<script>
+  const canvas = document.getElementById('matrix-bg');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (canvas instanceof HTMLCanvasElement && !reduceMotion) {
+    const ctx = canvas.getContext('2d');
+    const chars = '01アイウエオカキクケコサシスセソ{}<>/;=+*'.split('');
+    const fontSize = 15;
+    let columns = 0;
+    let drops = [];
+    let width = 0;
+    let height = 0;
+
+    function resize() {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = width;
+      canvas.height = height;
+      columns = Math.floor(width / fontSize);
+      drops = new Array(columns).fill(0).map(() => Math.floor((Math.random() * height) / fontSize));
+    }
+
+    resize();
+    window.addEventListener('resize', resize);
+
+    let running = true;
+    document.addEventListener('visibilitychange', () => {
+      running = document.visibilityState === 'visible';
+    });
+
+    function draw() {
+      if (!running || !ctx) return;
+      ctx.fillStyle = 'rgba(10, 14, 10, 0.09)';
+      ctx.fillRect(0, 0, width, height);
+      ctx.font = `${fontSize}px monospace`;
+
+      for (let i = 0; i < drops.length; i++) {
+        const char = chars[Math.floor(Math.random() * chars.length)];
+        const x = i * fontSize;
+        const y = drops[i] * fontSize;
+        ctx.fillStyle = y < fontSize * 2 ? 'rgba(196, 255, 220, 0.85)' : 'rgba(61, 220, 132, 0.8)';
+        ctx.fillText(char, x, y);
+
+        if (y > height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+        drops[i]++;
+      }
+    }
+
+    setInterval(draw, 60);
+  }
+</script>
+
+<style>
+  #matrix-bg {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    width: 100vw;
+    height: 100vh;
+    opacity: 0.32;
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #matrix-bg {
+      display: none;
+    }
+  }
+</style>

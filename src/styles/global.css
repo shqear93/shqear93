@@ -23,11 +23,13 @@
 html {
   scroll-behavior: smooth;
   background: var(--bg);
+  scroll-snap-type: y proximity;
 }
 
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+    scroll-snap-type: none;
   }
 }
 
@@ -77,6 +79,7 @@ section {
   padding: 96px 0;
   border-bottom: 1px solid var(--border);
   scroll-margin-top: 56px;
+  scroll-snap-align: start;
 }
 
 section:last-of-type {
