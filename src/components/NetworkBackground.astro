@@ -83,6 +83,7 @@
 
     resize();
     window.addEventListener('resize', resize);
+    document.documentElement.classList.add('custom-cursor');
 
     let running = true;
     let lastTime = performance.now();
@@ -103,6 +104,8 @@
       ctx.clearRect(0, 0, width, height);
 
       const burned = [];
+      let cursorProximity = 0;
+      let cursorHeat = 0;
 
       for (let idx = 0; idx < nodes.length; idx++) {
         const n = nodes[idx];
@@ -114,6 +117,9 @@
           const dist = Math.sqrt(dx * dx + dy * dy);
           if (dist < HOVER_RADIUS) {
             slowdown = Math.max(0.06, dist / HOVER_RADIUS);
+            const closeness = 1 - dist / HOVER_RADIUS;
+            if (closeness > cursorProximity) cursorProximity = closeness;
+            if (n.heat > cursorHeat) cursorHeat = n.heat;
           }
 
           if (dist < TOUCH_RADIUS) {
@@ -321,6 +327,30 @@
           ctx.fillStyle = gradient;
           ctx.fill();
         }
+        ctx.restore();
+      }
+
+      // The pointer itself: a soft glowing ring that brightens near a node
+      // and shifts hot as it charges one up.
+      if (mouse.active) {
+        const pulse = 0.5 + 0.5 * Math.sin(now / 450);
+        const [cr, cg, cb] = heatColor(cursorHeat);
+        const coreRadius = 2 + cursorHeat * 1.6;
+        const ringRadius = 7 + cursorProximity * 5 + cursorHeat * 4 + pulse * 2.5;
+
+        ctx.save();
+        ctx.shadowColor = `rgba(${cr}, ${cg}, ${cb}, 1)`;
+        ctx.shadowBlur = 8 + cursorProximity * 14 + cursorHeat * 14;
+        ctx.strokeStyle = `rgba(${cr}, ${cg}, ${cb}, ${0.3 + pulse * 0.2 + cursorProximity * 0.3})`;
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.arc(mouse.x, mouse.y, ringRadius, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(mouse.x, mouse.y, coreRadius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${cr}, ${cg}, ${cb}, 0.9)`;
+        ctx.fill();
         ctx.restore();
       }
 
