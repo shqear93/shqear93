@@ -16,7 +16,6 @@
     const TOUCH_RADIUS = 22;
     const HEAT_TIME = 2200;
     const COOL_TIME = 800;
-    const BURN_COOLDOWN = 1500;
 
     let width = 0;
     let height = 0;
@@ -62,7 +61,6 @@
         vx: (Math.random() - 0.5) * SPEED,
         vy: (Math.random() - 0.5) * SPEED,
         heat: 0,
-        burnCooldownUntil: 0,
       };
     }
 
@@ -104,6 +102,8 @@
 
       ctx.clearRect(0, 0, width, height);
 
+      const burned = [];
+
       for (let idx = 0; idx < nodes.length; idx++) {
         const n = nodes[idx];
         let slowdown = 1;
@@ -116,7 +116,7 @@
             slowdown = Math.max(0.06, dist / HOVER_RADIUS);
           }
 
-          if (dist < TOUCH_RADIUS && now > n.burnCooldownUntil) {
+          if (dist < TOUCH_RADIUS) {
             n.heat = Math.min(1, n.heat + dt / HEAT_TIME);
           } else {
             n.heat = Math.max(0, n.heat - dt / COOL_TIME);
@@ -127,8 +127,8 @@
 
         if (n.heat >= 1) {
           fires.push({ x: n.x, y: n.y, t: 0, duration: 1100, particles: [] });
-          n.heat = 0;
-          n.burnCooldownUntil = now + BURN_COOLDOWN;
+          burned.push(idx);
+          continue;
         }
 
         n.x += n.vx * dt * slowdown;
@@ -137,6 +137,24 @@
         if (n.y < 0 || n.y > height) n.vy *= -1;
         n.x = Math.max(0, Math.min(width, n.x));
         n.y = Math.max(0, Math.min(height, n.y));
+      }
+
+      if (burned.length > 0) {
+        const burnedSet = new Set(burned);
+        nodes = nodes.filter((_, i) => !burnedSet.has(i));
+        // Indices shift once nodes are removed, so any in-flight effects
+        // referencing old indices would now point at the wrong node.
+        pulses = [];
+        shorts = [];
+        cursorArcs = [];
+        for (let k = 0; k < burned.length; k++) {
+          setTimeout(
+            () => {
+              nodes.push(makeNode());
+            },
+            1200 + Math.random() * 900
+          );
+        }
       }
 
       const activeEdges = [];
