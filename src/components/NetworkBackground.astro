@@ -2,13 +2,16 @@
 ---
 
 <canvas id="network-bg" aria-hidden="true"></canvas>
+<canvas id="cursor-glow" aria-hidden="true"></canvas>
 
 <script>
   const canvas = document.getElementById('network-bg');
+  const cursorCanvas = document.getElementById('cursor-glow');
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   if (canvas instanceof HTMLCanvasElement && !reduceMotion) {
     const ctx = canvas.getContext('2d');
+    const ctxCursor = cursorCanvas.getContext('2d');
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const LINK_DIST = 150;
     const SPEED = 0.03;
@@ -70,6 +73,9 @@
       canvas.width = width * dpr;
       canvas.height = height * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      cursorCanvas.width = width * dpr;
+      cursorCanvas.height = height * dpr;
+      ctxCursor.setTransform(dpr, 0, 0, dpr, 0, 0);
 
       const target = nodeCount();
       if (nodes.length === 0) {
@@ -331,27 +337,29 @@
       }
 
       // The pointer itself: a soft glowing ring that brightens near a node
-      // and shifts hot as it charges one up.
+      // and shifts hot as it charges one up. Drawn on its own top-layer
+      // canvas so it stays visible over panels/text, not just open background.
+      ctxCursor.clearRect(0, 0, width, height);
       if (mouse.active) {
         const pulse = 0.5 + 0.5 * Math.sin(now / 450);
         const [cr, cg, cb] = heatColor(cursorHeat);
         const coreRadius = 2 + cursorHeat * 1.6;
         const ringRadius = 7 + cursorProximity * 5 + cursorHeat * 4 + pulse * 2.5;
 
-        ctx.save();
-        ctx.shadowColor = `rgba(${cr}, ${cg}, ${cb}, 1)`;
-        ctx.shadowBlur = 8 + cursorProximity * 14 + cursorHeat * 14;
-        ctx.strokeStyle = `rgba(${cr}, ${cg}, ${cb}, ${0.3 + pulse * 0.2 + cursorProximity * 0.3})`;
-        ctx.lineWidth = 1.4;
-        ctx.beginPath();
-        ctx.arc(mouse.x, mouse.y, ringRadius, 0, Math.PI * 2);
-        ctx.stroke();
+        ctxCursor.save();
+        ctxCursor.shadowColor = `rgba(${cr}, ${cg}, ${cb}, 1)`;
+        ctxCursor.shadowBlur = 8 + cursorProximity * 14 + cursorHeat * 14;
+        ctxCursor.strokeStyle = `rgba(${cr}, ${cg}, ${cb}, ${0.3 + pulse * 0.2 + cursorProximity * 0.3})`;
+        ctxCursor.lineWidth = 1.4;
+        ctxCursor.beginPath();
+        ctxCursor.arc(mouse.x, mouse.y, ringRadius, 0, Math.PI * 2);
+        ctxCursor.stroke();
 
-        ctx.beginPath();
-        ctx.arc(mouse.x, mouse.y, coreRadius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${cr}, ${cg}, ${cb}, 0.9)`;
-        ctx.fill();
-        ctx.restore();
+        ctxCursor.beginPath();
+        ctxCursor.arc(mouse.x, mouse.y, coreRadius, 0, Math.PI * 2);
+        ctxCursor.fillStyle = `rgba(${cr}, ${cg}, ${cb}, 0.9)`;
+        ctxCursor.fill();
+        ctxCursor.restore();
       }
 
       requestAnimationFrame(frame);
@@ -397,8 +405,18 @@
     pointer-events: none;
   }
 
+  #cursor-glow {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    #network-bg {
+    #network-bg,
+    #cursor-glow {
       display: none;
     }
   }

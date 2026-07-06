@@ -219,17 +219,13 @@ section:last-of-type {
 }
 
 /* Native cursor is replaced by a canvas-drawn glow (see NetworkBackground.astro),
-   but only over the open background — the canvas sits at z-index: -1, so the glow
-   is invisible wherever an opaque panel/card sits on top of it. Restore the real
-   cursor there so hovering actual content never leaves you with no pointer at all.
-   Only hidden once the script confirms it's actually running, so reduced-motion or
-   JS-disabled visitors always keep a real cursor. */
-html.custom-cursor {
-  cursor: none;
-}
-
-html.custom-cursor .panel,
-html.custom-cursor a,
-html.custom-cursor button {
-  cursor: auto;
+   rendered on its own top-layer canvas (z-index: 9999) so it stays visible
+   everywhere — panels, text, buttons — not just over open background. The
+   !important is required: links/buttons carry their own UA-default
+   `cursor: pointer`, which otherwise wins over an inherited value from html.
+   Only hidden once the script confirms it's actually running, so reduced-motion
+   or JS-disabled visitors always keep a real cursor. */
+html.custom-cursor,
+html.custom-cursor * {
+  cursor: none !important;
 }
