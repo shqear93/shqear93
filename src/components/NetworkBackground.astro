@@ -27,6 +27,7 @@
     let shorts = [];
     let cursorArcs = [];
     let fires = [];
+    let pointerHeat = 0;
 
     const mouse = { x: -9999, y: -9999, active: false };
     window.addEventListener(
@@ -273,6 +274,16 @@
       }
 
       cursorArcs = cursorArcs.filter((a) => a.t < a.duration && nodes[a.nodeIdx]);
+
+      // The pointer heats up from being arced at — multiple simultaneous arcs
+      // (or closer, more intense ones) stack and heat it faster than one alone.
+      const arcHeatInput = cursorArcs.reduce((sum, a) => sum + a.intensity, 0);
+      if (arcHeatInput > 0) {
+        pointerHeat = Math.min(1, pointerHeat + (arcHeatInput * dt) / 900);
+      } else {
+        pointerHeat = Math.max(0, pointerHeat - dt / 700);
+      }
+
       for (const a of cursorArcs) {
         a.t += dt;
         const n = nodes[a.nodeIdx];
@@ -342,13 +353,14 @@
       ctxCursor.clearRect(0, 0, width, height);
       if (mouse.active) {
         const pulse = 0.5 + 0.5 * Math.sin(now / 450);
-        const [cr, cg, cb] = heatColor(cursorHeat);
-        const coreRadius = 2 + cursorHeat * 1.6;
-        const ringRadius = 7 + cursorProximity * 5 + cursorHeat * 4 + pulse * 2.5;
+        const displayHeat = Math.max(cursorHeat, pointerHeat);
+        const [cr, cg, cb] = heatColor(displayHeat);
+        const coreRadius = 2 + displayHeat * 1.6;
+        const ringRadius = 7 + cursorProximity * 5 + displayHeat * 4 + pulse * 2.5;
 
         ctxCursor.save();
         ctxCursor.shadowColor = `rgba(${cr}, ${cg}, ${cb}, 1)`;
-        ctxCursor.shadowBlur = 8 + cursorProximity * 14 + cursorHeat * 14;
+        ctxCursor.shadowBlur = 8 + cursorProximity * 14 + displayHeat * 14;
         ctxCursor.strokeStyle = `rgba(${cr}, ${cg}, ${cb}, ${0.3 + pulse * 0.2 + cursorProximity * 0.3})`;
         ctxCursor.lineWidth = 1.4;
         ctxCursor.beginPath();
