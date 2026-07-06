@@ -12,16 +12,57 @@
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const LINK_DIST = 150;
     const SPEED = 0.03;
+    const HOVER_RADIUS = 140;
+    const TOUCH_RADIUS = 22;
+    const HEAT_TIME = 2200;
+    const COOL_TIME = 800;
+    const BURN_COOLDOWN = 1500;
 
     let width = 0;
     let height = 0;
     let nodes = [];
     let pulses = [];
     let shorts = [];
+    let bursts = [];
+
+    const mouse = { x: -9999, y: -9999, active: false };
+    window.addEventListener(
+      'mousemove',
+      (e) => {
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+        mouse.active = true;
+      },
+      { passive: true }
+    );
+    window.addEventListener('mouseleave', () => {
+      mouse.active = false;
+    });
+
+    function lerpColor(c1, c2, t) {
+      return [0, 1, 2].map((i) => Math.round(c1[i] + (c2[i] - c1[i]) * t));
+    }
+
+    function heatColor(heat) {
+      if (heat <= 0) return [61, 220, 132];
+      if (heat < 0.5) return lerpColor([61, 220, 132], [232, 179, 44], heat / 0.5);
+      return lerpColor([232, 179, 44], [255, 90, 50], (heat - 0.5) / 0.5);
+    }
 
     function nodeCount() {
       const area = width * height;
       return Math.min(90, Math.max(30, Math.round(area / 18000)));
+    }
+
+    function makeNode() {
+      return {
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * SPEED,
+        vy: (Math.random() - 0.5) * SPEED,
+        heat: 0,
+        burnCooldownUntil: 0,
+      };
     }
 
     function resize() {
@@ -33,21 +74,9 @@
 
       const target = nodeCount();
       if (nodes.length === 0) {
-        nodes = Array.from({ length: target }, () => ({
-          x: Math.random() * width,
-          y: Math.random() * height,
-          vx: (Math.random() - 0.5) * SPEED,
-          vy: (Math.random() - 0.5) * SPEED,
-        }));
+        nodes = Array.from({ length: target }, makeNode);
       } else if (nodes.length < target) {
-        while (nodes.length < target) {
-          nodes.push({
-            x: Math.random() * width,
-            y: Math.random() * height,
-            vx: (Math.random() - 0.5) * SPEED,
-            vy: (Math.random() - 0.5) * SPEED,
-          });
-        }
+        while (nodes.length < target) nodes.push(makeNode());
       } else {
         nodes.length = target;
       }
@@ -74,14 +103,59 @@
 
       ctx.clearRect(0, 0, width, height);
 
-      for (const n of nodes) {
-        n.x += n.vx * dt;
-        n.y += n.vy * dt;
+      let nearestIdx = -1;
+      let nearestDist = Infinity;
+
+      for (let idx = 0; idx < nodes.length; idx++) {
+        const n = nodes[idx];
+        let slowdown = 1;
+
+        if (mouse.active) {
+          const dx = n.x - mouse.x;
+          const dy = n.y - mouse.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < nearestDist) {
+            nearestDist = dist;
+            nearestIdx = idx;
+          }
+          if (dist < HOVER_RADIUS) {
+            slowdown = Math.max(0.06, dist / HOVER_RADIUS);
+          }
+
+          if (dist < TOUCH_RADIUS && now > n.burnCooldownUntil) {
+            n.heat = Math.min(1, n.heat + dt / HEAT_TIME);
+          } else {
+            n.heat = Math.max(0, n.heat - dt / COOL_TIME);
+          }
+        } else {
+          n.heat = Math.max(0, n.heat - dt / COOL_TIME);
+        }
+
+        if (n.heat >= 1) {
+          bursts.push({
+            x: n.x,
+            y: n.y,
+            t: 0,
+            duration: 550,
+            particles: Array.from({ length: 12 }, () => ({
+              angle: Math.random() * Math.PI * 2,
+              speed: 0.05 + Math.random() * 0.09,
+            })),
+          });
+          n.heat = 0;
+          n.burnCooldownUntil = now + BURN_COOLDOWN;
+        }
+
+        n.x += n.vx * dt * slowdown;
+        n.y += n.vy * dt * slowdown;
         if (n.x < 0 || n.x > width) n.vx *= -1;
         if (n.y < 0 || n.y > height) n.vy *= -1;
         n.x = Math.max(0, Math.min(width, n.x));
         n.y = Math.max(0, Math.min(height, n.y));
       }
+
+      const proximityBoost =
+        mouse.active && nearestDist < HOVER_RADIUS ? 1 - nearestDist / HOVER_RADIUS : 0;
 
       const activeEdges = [];
       for (let i = 0; i < nodes.length; i++) {
@@ -136,19 +210,26 @@
       }
 
       for (const n of nodes) {
+        const [r, g, b] = heatColor(n.heat);
         ctx.save();
-        ctx.shadowColor = 'rgba(61, 220, 132, 0.9)';
-        ctx.shadowBlur = 6;
+        ctx.shadowColor = `rgba(${r}, ${g}, ${b}, 0.9)`;
+        ctx.shadowBlur = 6 + n.heat * 16;
         ctx.beginPath();
-        ctx.arc(n.x, n.y, 1.6, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(61, 220, 132, 0.85)';
+        ctx.arc(n.x, n.y, 1.6 + n.heat * 2.4, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.85)`;
         ctx.fill();
         ctx.restore();
       }
 
-      // Rare electrical-short flicker: a connection arcs erratically for a beat.
-      if (activeEdges.length > 0 && shorts.length < 1 && Math.random() < 0.0025) {
-        const [i, j] = activeEdges[Math.floor(Math.random() * activeEdges.length)];
+      // Electrical-short flicker: rare on its own, much more likely near the cursor.
+      const shortChance = 0.0025 + proximityBoost * 0.05;
+      if (activeEdges.length > 0 && shorts.length < 2 && Math.random() < shortChance) {
+        let candidates = activeEdges;
+        if (proximityBoost > 0.25 && nearestIdx >= 0) {
+          const filtered = activeEdges.filter(([i, j]) => i === nearestIdx || j === nearestIdx);
+          if (filtered.length) candidates = filtered;
+        }
+        const [i, j] = candidates[Math.floor(Math.random() * candidates.length)];
         shorts.push({ i, j, t: 0, duration: 260 + Math.random() * 220 });
       }
 
@@ -182,6 +263,34 @@
           ctx.stroke();
           ctx.restore();
         }
+      }
+
+      // Burn bursts: a node that overheated flashes and throws off embers.
+      bursts = bursts.filter((burst) => burst.t < burst.duration);
+      for (const burst of bursts) {
+        burst.t += dt;
+        const p = burst.t / burst.duration;
+
+        ctx.save();
+        ctx.globalAlpha = 1 - p;
+        ctx.strokeStyle = 'rgba(255, 140, 60, 0.9)';
+        ctx.shadowColor = 'rgba(255, 120, 50, 1)';
+        ctx.shadowBlur = 20;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(burst.x, burst.y, 4 + p * 30, 0, Math.PI * 2);
+        ctx.stroke();
+
+        for (const particle of burst.particles) {
+          const dist = particle.speed * burst.t;
+          const px = burst.x + Math.cos(particle.angle) * dist;
+          const py = burst.y + Math.sin(particle.angle) * dist;
+          ctx.beginPath();
+          ctx.arc(px, py, 1.4, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255, ${140 + Math.floor(Math.random() * 80)}, 60, ${1 - p})`;
+          ctx.fill();
+        }
+        ctx.restore();
       }
 
       requestAnimationFrame(frame);
