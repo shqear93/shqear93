@@ -1,7 +1,7 @@
 ---
 import '../styles/global.css';
 import { profile } from '../data/content';
-import MatrixBackground from '../components/MatrixBackground.astro';
+import NetworkBackground from '../components/NetworkBackground.astro';
 
 interface Props {
   title?: string;
@@ -30,7 +30,7 @@ const {
     />
   </head>
   <body>
-    <MatrixBackground />
+    <NetworkBackground />
     <div class="scroll-progress" id="scroll-progress"></div>
     <slot />
     <script>

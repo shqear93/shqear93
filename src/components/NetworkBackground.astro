@@ -1,75 +1,170 @@
 ---
 ---
 
-<canvas id="matrix-bg" aria-hidden="true"></canvas>
+<canvas id="network-bg" aria-hidden="true"></canvas>
 
 <script>
-  const canvas = document.getElementById('matrix-bg');
+  const canvas = document.getElementById('network-bg');
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   if (canvas instanceof HTMLCanvasElement && !reduceMotion) {
     const ctx = canvas.getContext('2d');
-    const chars = '01アイウエオカキクケコサシスセソ{}<>/;=+*'.split('');
-    const fontSize = 15;
-    let columns = 0;
-    let drops = [];
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const LINK_DIST = 150;
+    const SPEED = 0.15;
+
     let width = 0;
     let height = 0;
+    let nodes = [];
+    let pulses = [];
+
+    function nodeCount() {
+      const area = width * height;
+      return Math.min(90, Math.max(30, Math.round(area / 18000)));
+    }
 
     function resize() {
       width = window.innerWidth;
       height = window.innerHeight;
-      canvas.width = width;
-      canvas.height = height;
-      columns = Math.floor(width / fontSize);
-      drops = new Array(columns).fill(0).map(() => Math.floor((Math.random() * height) / fontSize));
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      const target = nodeCount();
+      if (nodes.length === 0) {
+        nodes = Array.from({ length: target }, () => ({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          vx: (Math.random() - 0.5) * SPEED,
+          vy: (Math.random() - 0.5) * SPEED,
+        }));
+      } else if (nodes.length < target) {
+        while (nodes.length < target) {
+          nodes.push({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            vx: (Math.random() - 0.5) * SPEED,
+            vy: (Math.random() - 0.5) * SPEED,
+          });
+        }
+      } else {
+        nodes.length = target;
+      }
     }
 
     resize();
     window.addEventListener('resize', resize);
 
     let running = true;
+    let lastTime = performance.now();
+
     document.addEventListener('visibilitychange', () => {
       running = document.visibilityState === 'visible';
+      if (running) {
+        lastTime = performance.now();
+        requestAnimationFrame(frame);
+      }
     });
 
-    function draw() {
+    function frame(now) {
       if (!running || !ctx) return;
-      ctx.fillStyle = 'rgba(10, 14, 10, 0.09)';
-      ctx.fillRect(0, 0, width, height);
-      ctx.font = `${fontSize}px monospace`;
+      const dt = Math.min(now - lastTime, 48);
+      lastTime = now;
 
-      for (let i = 0; i < drops.length; i++) {
-        const char = chars[Math.floor(Math.random() * chars.length)];
-        const x = i * fontSize;
-        const y = drops[i] * fontSize;
-        ctx.fillStyle = y < fontSize * 2 ? 'rgba(196, 255, 220, 0.85)' : 'rgba(61, 220, 132, 0.8)';
-        ctx.fillText(char, x, y);
+      ctx.clearRect(0, 0, width, height);
 
-        if (y > height && Math.random() > 0.975) {
-          drops[i] = 0;
-        }
-        drops[i]++;
+      for (const n of nodes) {
+        n.x += n.vx * dt;
+        n.y += n.vy * dt;
+        if (n.x < 0 || n.x > width) n.vx *= -1;
+        if (n.y < 0 || n.y > height) n.vy *= -1;
+        n.x = Math.max(0, Math.min(width, n.x));
+        n.y = Math.max(0, Math.min(height, n.y));
       }
+
+      const activeEdges = [];
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const a = nodes[i];
+          const b = nodes[j];
+          const dx = a.x - b.x;
+          const dy = a.y - b.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < LINK_DIST) {
+            const alpha = (1 - dist / LINK_DIST) * 0.5;
+            ctx.strokeStyle = `rgba(61, 220, 132, ${alpha})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.stroke();
+            activeEdges.push([i, j]);
+          }
+        }
+      }
+
+      // Occasionally spark a traveling light pulse along a live connection.
+      if (activeEdges.length > 0 && pulses.length < 14 && Math.random() < 0.06) {
+        const [i, j] = activeEdges[Math.floor(Math.random() * activeEdges.length)];
+        pulses.push({
+          from: Math.random() < 0.5 ? i : j,
+          to: Math.random() < 0.5 ? j : i,
+          t: 0,
+          speed: 0.0009 + Math.random() * 0.0006,
+        });
+      }
+
+      pulses = pulses.filter((p) => p.t < 1);
+      for (const p of pulses) {
+        p.t += p.speed * dt;
+        const a = nodes[p.from];
+        const b = nodes[p.to];
+        if (!a || !b) continue;
+        const x = a.x + (b.x - a.x) * p.t;
+        const y = a.y + (b.y - a.y) * p.t;
+        const fade = Math.sin(Math.PI * p.t);
+
+        ctx.save();
+        ctx.shadowColor = 'rgba(120, 255, 190, 1)';
+        ctx.shadowBlur = 14;
+        ctx.beginPath();
+        ctx.arc(x, y, 2.2, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(196, 255, 220, ${0.85 * fade + 0.15})`;
+        ctx.fill();
+        ctx.restore();
+      }
+
+      for (const n of nodes) {
+        ctx.save();
+        ctx.shadowColor = 'rgba(61, 220, 132, 0.9)';
+        ctx.shadowBlur = 6;
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, 1.6, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(61, 220, 132, 0.85)';
+        ctx.fill();
+        ctx.restore();
+      }
+
+      requestAnimationFrame(frame);
     }
 
-    setInterval(draw, 60);
+    requestAnimationFrame(frame);
   }
 </script>
 
 <style>
-  #matrix-bg {
+  #network-bg {
     position: fixed;
     inset: 0;
     z-index: -1;
     width: 100vw;
     height: 100vh;
-    opacity: 0.32;
+    opacity: 0.6;
     pointer-events: none;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    #matrix-bg {
+    #network-bg {
       display: none;
     }
   }
