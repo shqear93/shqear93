@@ -23,7 +23,7 @@ I build and operate systems that survive scale, failures, and real production pr
 
 <p align="center">
   <a href="https://github.com/shqear93">
-    <img src="https://github-readme-streak-stats.herokuapp.com?user=shqear93&theme=vue-dark&fire=EB5454&ring=EB5454" alt="Khaled's Streak" />
+    <img src="https://streak-stats.demolab.com?user=shqear93&theme=vue-dark&fire=EB5454&ring=EB5454" alt="Khaled's Streak" />
   </a>
 </p>
 
@@ -33,8 +33,8 @@ I build and operate systems that survive scale, failures, and real production pr
 
 <p align="center">
   <a href="https://github.com/shqear93">
-    <img height="180em" src="https://github-readme-stats.vercel.app/api?username=shqear93&show_icons=true&theme=vue-dark&count_private=true" alt="Khaled's GitHub Stats" />
-    <img height="180em" src="https://github-readme-stats.vercel.app/api/top-langs?username=shqear93&show_icons=true&layout=compact&theme=vue-dark" alt="Top Languages" />
+    <img height="180em" src="https://github-readme-stats-sooty-nine.vercel.app/api?username=shqear93&show_icons=true&theme=vue-dark&count_private=true" alt="Khaled's GitHub Stats" />
+    <img height="180em" src="https://github-readme-stats-sooty-nine.vercel.app/api/top-langs?username=shqear93&show_icons=true&layout=compact&theme=vue-dark" alt="Top Languages" />
   </a>
 </p>
 
